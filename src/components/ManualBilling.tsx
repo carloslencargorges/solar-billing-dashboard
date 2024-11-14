@@ -5,6 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Send } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Using the same mock data as in TenantsManagement
+const mockTenants = [
+  { id: 1, name: "João Silva", email: "joao@email.com", unit: "Apt 101", phone: "(11) 99999-9999" },
+  { id: 2, name: "Maria Santos", email: "maria@email.com", unit: "Apt 102", phone: "(11) 98888-8888" },
+];
 
 const ManualBilling = () => {
   const { toast } = useToast();
@@ -28,7 +41,18 @@ const ManualBilling = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="tenant">Inquilino</Label>
-            <Input id="tenant" placeholder="Nome do inquilino" />
+            <Select>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um inquilino" />
+              </SelectTrigger>
+              <SelectContent>
+                {mockTenants.map((tenant) => (
+                  <SelectItem key={tenant.id} value={tenant.id.toString()}>
+                    {tenant.name} - {tenant.unit}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
