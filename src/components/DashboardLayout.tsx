@@ -1,11 +1,12 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { File, CheckCircle, XCircle, Send, Calendar, PlusCircle, Users } from 'lucide-react';
+import { File, CheckCircle, XCircle, Send, Calendar, PlusCircle, Users, ListPlus } from 'lucide-react';
 import BillingOverview from './BillingOverview';
 import BillingHistory from './BillingHistory';
 import ManualBilling from './ManualBilling';
 import TenantsManagement from './TenantsManagement';
+import BulkBilling from './BulkBilling';
 
 const DashboardLayout = () => {
   return (
@@ -32,6 +33,10 @@ const DashboardLayout = () => {
               <PlusCircle className="w-4 h-4 mr-2" />
               Envio Manual
             </TabsTrigger>
+            <TabsTrigger value="bulk" className="data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green">
+              <ListPlus className="w-4 h-4 mr-2" />
+              Envio em Massa
+            </TabsTrigger>
             <TabsTrigger value="tenants" className="data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green">
               <Users className="w-4 h-4 mr-2" />
               Inquilinos
@@ -48,6 +53,10 @@ const DashboardLayout = () => {
 
           <TabsContent value="manual" className="animate-slide-up">
             <ManualBilling />
+          </TabsContent>
+
+          <TabsContent value="bulk" className="animate-slide-up">
+            <BulkBilling />
           </TabsContent>
 
           <TabsContent value="tenants" className="animate-slide-up">
