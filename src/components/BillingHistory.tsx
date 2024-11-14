@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { checkCircle, xCircle } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 
 const mockBillings = [
   {
@@ -21,7 +21,6 @@ const mockBillings = [
     date: "2024-03-15",
     dueDate: "2024-03-25",
   },
-  // Add more mock data as needed
 ];
 
 const BillingHistory = () => {
@@ -49,7 +48,7 @@ const BillingHistory = () => {
               <TableCell>
                 {billing.status === 'paid' ? (
                   <Badge className="bg-eco-green/20 text-leaf-dark hover:bg-eco-green/30">
-                    <checkCircle className="w-3 h-3 mr-1" />
+                    <CheckCircle className="w-3 h-3 mr-1" />
                     Pago
                   </Badge>
                 ) : (

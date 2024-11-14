@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { send } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 
 const ManualBilling = () => {
@@ -47,7 +47,7 @@ const ManualBilling = () => {
           </div>
 
           <Button type="submit" className="w-full bg-eco-green hover:bg-leaf-dark">
-            <send className="w-4 h-4 mr-2" />
+            <Send className="w-4 h-4 mr-2" />
             Enviar Cobrança
           </Button>
         </form>

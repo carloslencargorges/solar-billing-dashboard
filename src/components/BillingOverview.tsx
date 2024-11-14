@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { file, checkCircle, xCircle } from 'lucide-react';
+import { File, CheckCircle, XCircle } from 'lucide-react';
 
 const mockData = [
   { month: 'Jan', enviadas: 40, pagas: 35, falhas: 2 },
@@ -25,21 +25,21 @@ const BillingOverview = () => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          icon={file}
+          icon={File}
           title="Faturas Enviadas"
           value="42"
           description="Neste mês"
           className="bg-eco-green/5 text-leaf-dark"
         />
         <StatCard
-          icon={checkCircle}
+          icon={CheckCircle}
           title="Faturas Pagas"
           value="38"
           description="90.4% do total"
           className="bg-eco-green/10 text-leaf-dark"
         />
         <StatCard
-          icon={xCircle}
+          icon={XCircle}
           title="Falhas no Envio"
           value="0"
           description="Nenhuma falha"
