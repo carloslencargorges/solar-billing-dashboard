@@ -1,12 +1,13 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { File, CheckCircle, XCircle, Send, Calendar, PlusCircle, Users, ListPlus } from 'lucide-react';
+import { File, CheckCircle, XCircle, Send, Calendar, PlusCircle, Users, ListPlus, History } from 'lucide-react';
 import BillingOverview from './BillingOverview';
 import BillingHistory from './BillingHistory';
 import ManualBilling from './ManualBilling';
 import TenantsManagement from './TenantsManagement';
 import BulkBilling from './BulkBilling';
+import ConsumptionHistory from './ConsumptionHistory';
 
 const DashboardLayout = () => {
   return (
@@ -29,6 +30,10 @@ const DashboardLayout = () => {
               <Calendar className="w-4 h-4 mr-2" />
               Histórico
             </TabsTrigger>
+            <TabsTrigger value="consumption" className="data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green">
+              <History className="w-4 h-4 mr-2" />
+              Consumo
+            </TabsTrigger>
             <TabsTrigger value="manual" className="data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green">
               <PlusCircle className="w-4 h-4 mr-2" />
               Envio Manual
@@ -49,6 +54,10 @@ const DashboardLayout = () => {
 
           <TabsContent value="history" className="animate-slide-up">
             <BillingHistory />
+          </TabsContent>
+
+          <TabsContent value="consumption" className="animate-slide-up">
+            <ConsumptionHistory />
           </TabsContent>
 
           <TabsContent value="manual" className="animate-slide-up">
