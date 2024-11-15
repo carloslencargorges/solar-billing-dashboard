@@ -73,7 +73,7 @@ const ConsumptionHistory = () => {
                 <SelectValue placeholder="Filtrar por mês" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os meses</SelectItem>
+                <SelectItem value="all">Todos os meses</SelectItem>
                 {uniqueMonths.map(month => (
                   <SelectItem key={month} value={month}>
                     {format(new Date(month), 'MMMM yyyy', { locale: ptBR })}
@@ -89,7 +89,7 @@ const ConsumptionHistory = () => {
                 <SelectValue placeholder="Filtrar por inquilino" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os inquilinos</SelectItem>
+                <SelectItem value="all">Todos os inquilinos</SelectItem>
                 {mockTenants.map(tenant => (
                   <SelectItem key={tenant.id} value={tenant.name}>
                     {tenant.name}
@@ -105,7 +105,7 @@ const ConsumptionHistory = () => {
                 <SelectValue placeholder="Filtrar por unidade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as unidades</SelectItem>
+                <SelectItem value="all">Todas as unidades</SelectItem>
                 {uniqueUnits.map(unit => (
                   <SelectItem key={unit} value={unit}>
                     {unit}
