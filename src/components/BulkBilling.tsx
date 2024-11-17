@@ -29,6 +29,19 @@ const BulkBilling = () => {
     },
   });
 
+  // Check for existing consumption records
+  const checkExistingConsumption = async (tenantId: string, month: string) => {
+    const formattedMonth = `${month}-01`;
+    const { data, error } = await supabase
+      .from('consumption')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('month', formattedMonth);
+
+    if (error) throw error;
+    return data && data.length > 0;
+  };
+
   // Mutation for adding consumption records
   const addConsumptionMutation = useMutation({
     mutationFn: async (consumptionData: { tenant_id: string; consumption: number; month: string }) => {
@@ -83,11 +96,27 @@ const BulkBilling = () => {
     // Submit consumption data for each tenant
     for (const [tenantId, consumption] of Object.entries(consumptions)) {
       if (consumption && parseFloat(consumption) > 0) {
-        await addConsumptionMutation.mutateAsync({
-          tenant_id: tenantId,
-          consumption: parseFloat(consumption),
-          month,
-        });
+        try {
+          // Check for existing consumption record
+          const hasExisting = await checkExistingConsumption(tenantId, month);
+          
+          if (hasExisting) {
+            toast({
+              title: "Erro de validação",
+              description: `Já existe um registro de consumo para o inquilino no mês ${month}.`,
+              variant: "destructive",
+            });
+            continue;
+          }
+
+          await addConsumptionMutation.mutateAsync({
+            tenant_id: tenantId,
+            consumption: parseFloat(consumption),
+            month,
+          });
+        } catch (error) {
+          console.error('Error:', error);
+        }
       }
     }
 
