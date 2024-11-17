@@ -32,9 +32,12 @@ const BulkBilling = () => {
   // Mutation for adding consumption records
   const addConsumptionMutation = useMutation({
     mutationFn: async (consumptionData: { tenant_id: string; consumption: number; month: string }) => {
+      // Convert YYYY-MM to YYYY-MM-DD by adding the first day of the month
+      const formattedMonth = `${consumptionData.month}-01`;
+      
       const { data, error } = await supabase
         .from('consumption')
-        .insert([consumptionData])
+        .insert([{ ...consumptionData, month: formattedMonth }])
         .select()
         .single();
 
