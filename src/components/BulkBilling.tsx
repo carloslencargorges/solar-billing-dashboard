@@ -6,52 +6,113 @@ import { Label } from "@/components/ui/label";
 import { Send } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-// Using the same mock data as in TenantsManagement
-const mockTenants = [
-  { id: 1, name: "João Silva", email: "joao@email.com", unit: "Apt 101", phone: "(11) 99999-9999" },
-  { id: 2, name: "Maria Santos", email: "maria@email.com", unit: "Apt 102", phone: "(11) 98888-8888" },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const BulkBilling = () => {
   const { toast } = useToast();
-  const [consumptions, setConsumptions] = useState<{ [key: number]: string }>({});
-  const [dueDate, setDueDate] = useState('');
+  const queryClient = useQueryClient();
+  const [consumptions, setConsumptions] = useState<{ [key: string]: string }>({});
+  const [month, setMonth] = useState('');
 
-  const handleConsumptionChange = (tenantId: number, value: string) => {
+  // Fetch tenants
+  const { data: tenants, isLoading } = useQuery({
+    queryKey: ['tenants'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tenants')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Mutation for adding consumption records
+  const addConsumptionMutation = useMutation({
+    mutationFn: async (consumptionData: { tenant_id: string; consumption: number; month: string }) => {
+      const { data, error } = await supabase
+        .from('consumption')
+        .insert([consumptionData])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['consumption'] });
+      toast({
+        title: "Consumo registrado com sucesso!",
+        description: "Os dados de consumo foram salvos.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao registrar consumo",
+        description: "Ocorreu um erro ao salvar os dados de consumo.",
+        variant: "destructive",
+      });
+      console.error('Error:', error);
+    },
+  });
+
+  const handleConsumptionChange = (tenantId: string, value: string) => {
     setConsumptions(prev => ({
       ...prev,
       [tenantId]: value
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Here you would calculate the billing amount based on consumption
-    // and send bills to all tenants
-    toast({
-      title: "Cobranças enviadas com sucesso!",
-      description: "Todos os inquilinos receberão suas faturas por email.",
-    });
+    if (!month) {
+      toast({
+        title: "Erro de validação",
+        description: "Por favor, selecione o mês de referência.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Submit consumption data for each tenant
+    for (const [tenantId, consumption] of Object.entries(consumptions)) {
+      if (consumption && parseFloat(consumption) > 0) {
+        await addConsumptionMutation.mutateAsync({
+          tenant_id: tenantId,
+          consumption: parseFloat(consumption),
+          month,
+        });
+      }
+    }
+
+    // Clear form after successful submission
+    setConsumptions({});
+    setMonth('');
   };
+
+  if (isLoading) {
+    return <div>Carregando inquilinos...</div>;
+  }
 
   return (
     <Card className="p-6">
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-semibold">Envio em Massa de Cobranças</h3>
-          <p className="text-warm-gray">Insira o consumo de cada inquilino para gerar as cobranças do mês</p>
+          <h3 className="text-lg font-semibold">Registro de Consumo</h3>
+          <p className="text-muted-foreground">Insira o consumo de cada inquilino para o mês selecionado</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="dueDate">Data de Vencimento</Label>
+            <Label htmlFor="month">Mês de Referência</Label>
             <Input 
-              id="dueDate" 
-              type="date" 
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
+              id="month" 
+              type="month" 
+              value={month}
+              onChange={(e) => setMonth(e.target.value)}
               required
             />
           </div>
@@ -66,7 +127,7 @@ const BulkBilling = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockTenants.map((tenant) => (
+                {tenants?.map((tenant) => (
                   <TableRow key={tenant.id}>
                     <TableCell>{tenant.name}</TableCell>
                     <TableCell>{tenant.unit}</TableCell>
@@ -76,7 +137,8 @@ const BulkBilling = () => {
                         placeholder="0"
                         value={consumptions[tenant.id] || ''}
                         onChange={(e) => handleConsumptionChange(tenant.id, e.target.value)}
-                        required
+                        min="0"
+                        step="0.01"
                       />
                     </TableCell>
                   </TableRow>
@@ -85,9 +147,13 @@ const BulkBilling = () => {
             </Table>
           </div>
 
-          <Button type="submit" className="w-full bg-eco-green hover:bg-leaf-dark">
+          <Button 
+            type="submit" 
+            className="w-full bg-eco-green hover:bg-leaf-dark"
+            disabled={addConsumptionMutation.isPending}
+          >
             <Send className="w-4 h-4 mr-2" />
-            Enviar Cobranças
+            {addConsumptionMutation.isPending ? 'Salvando...' : 'Registrar Consumo'}
           </Button>
         </form>
       </div>
