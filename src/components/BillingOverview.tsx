@@ -10,20 +10,20 @@ const mockData = [
 ];
 
 const StatCard = ({ icon: Icon, title, value, description, className }: any) => (
-  <Card className={`p-6 space-y-2 transition-all hover:shadow-md ${className}`}>
+  <Card className={`p-4 sm:p-6 space-y-2 transition-all hover:shadow-md ${className}`}>
     <div className="flex items-center space-x-2">
       <Icon className="w-5 h-5" />
-      <h3 className="font-medium text-warm-gray">{title}</h3>
+      <h3 className="font-medium text-warm-gray text-sm sm:text-base">{title}</h3>
     </div>
-    <p className="text-2xl font-bold">{value}</p>
-    <p className="text-sm text-warm-gray">{description}</p>
+    <p className="text-xl sm:text-2xl font-bold">{value}</p>
+    <p className="text-xs sm:text-sm text-warm-gray">{description}</p>
   </Card>
 );
 
 const BillingOverview = () => {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <StatCard
           icon={File}
           title="Faturas Enviadas"
@@ -47,14 +47,14 @@ const BillingOverview = () => {
         />
       </div>
 
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Histórico de Cobranças</h3>
-        <div className="h-[300px]">
+      <Card className="p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold mb-4">Histórico de Cobranças</h3>
+        <div className="h-[250px] sm:h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={mockData}>
+            <BarChart data={mockData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
+              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
               <Bar dataKey="enviadas" name="Enviadas" fill="#34D399" />
               <Bar dataKey="pagas" name="Pagas" fill="#065F46" />

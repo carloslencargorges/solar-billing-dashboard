@@ -25,42 +25,46 @@ const mockBillings = [
 
 const BillingHistory = () => {
   return (
-    <Card className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold">Histórico de Faturas</h3>
+    <Card className="p-4 sm:p-6">
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-semibold">Histórico de Faturas</h3>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Inquilino</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Data de Envio</TableHead>
-            <TableHead>Vencimento</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {mockBillings.map((billing) => (
-            <TableRow key={billing.id} className="hover:bg-eco-green/5">
-              <TableCell className="font-medium">{billing.tenant}</TableCell>
-              <TableCell>{billing.amount}</TableCell>
-              <TableCell>
-                {billing.status === 'paid' ? (
-                  <Badge className="bg-eco-green/20 text-leaf-dark hover:bg-eco-green/30">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Pago
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary">Pendente</Badge>
-                )}
-              </TableCell>
-              <TableCell>{new Date(billing.date).toLocaleDateString('pt-BR')}</TableCell>
-              <TableCell>{new Date(billing.dueDate).toLocaleDateString('pt-BR')}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <div className="overflow-x-auto -mx-4 sm:mx-0">
+        <div className="inline-block min-w-full align-middle">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="whitespace-nowrap">Inquilino</TableHead>
+                <TableHead className="whitespace-nowrap">Valor</TableHead>
+                <TableHead className="whitespace-nowrap">Status</TableHead>
+                <TableHead className="whitespace-nowrap">Data de Envio</TableHead>
+                <TableHead className="whitespace-nowrap">Vencimento</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mockBillings.map((billing) => (
+                <TableRow key={billing.id} className="hover:bg-eco-green/5">
+                  <TableCell className="whitespace-nowrap font-medium">{billing.tenant}</TableCell>
+                  <TableCell className="whitespace-nowrap">{billing.amount}</TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {billing.status === 'paid' ? (
+                      <Badge className="bg-eco-green/20 text-leaf-dark hover:bg-eco-green/30">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Pago
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary">Pendente</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">{new Date(billing.date).toLocaleDateString('pt-BR')}</TableCell>
+                  <TableCell className="whitespace-nowrap">{new Date(billing.dueDate).toLocaleDateString('pt-BR')}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </Card>
   );
 };
