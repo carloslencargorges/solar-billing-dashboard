@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,42 +12,135 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Using the same mock data as in TenantsManagement
-const mockTenants = [
-  { id: 1, name: "João Silva", email: "joao@email.com", unit: "Apt 101", phone: "(11) 99999-9999" },
-  { id: 2, name: "Maria Santos", email: "maria@email.com", unit: "Apt 102", phone: "(11) 98888-8888" },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const ManualBilling = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedTenant, setSelectedTenant] = useState('');
+  const [consumption, setConsumption] = useState('');
+  const [month, setMonth] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Cobrança enviada com sucesso!",
-      description: "O inquilino receberá a fatura por email.",
-    });
+  // Fetch tenants
+  const { data: tenants, isLoading } = useQuery({
+    queryKey: ['tenants'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tenants')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Check for existing consumption
+  const checkExistingConsumption = async (tenantId: string, month: string) => {
+    const formattedMonth = `${month}-01`;
+    const { data, error } = await supabase
+      .from('consumption')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('month', formattedMonth);
+
+    if (error) throw error;
+    return data && data.length > 0;
   };
+
+  // Mutation for adding consumption
+  const addConsumptionMutation = useMutation({
+    mutationFn: async (consumptionData: { tenant_id: string; consumption: number; month: string }) => {
+      const formattedMonth = `${consumptionData.month}-01`;
+      
+      const { data, error } = await supabase
+        .from('consumption')
+        .insert([{ ...consumptionData, month: formattedMonth }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['consumption'] });
+      toast({
+        title: "Consumo registrado com sucesso!",
+        description: "Os dados de consumo foram salvos.",
+      });
+      // Reset form
+      setSelectedTenant('');
+      setConsumption('');
+      setMonth('');
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao registrar consumo",
+        description: "Ocorreu um erro ao salvar os dados de consumo.",
+        variant: "destructive",
+      });
+      console.error('Error:', error);
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedTenant || !consumption || !month) {
+      toast({
+        title: "Erro de validação",
+        description: "Por favor, preencha todos os campos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Check for existing consumption record
+      const hasExisting = await checkExistingConsumption(selectedTenant, month);
+      
+      if (hasExisting) {
+        toast({
+          title: "Erro de validação",
+          description: `Já existe um registro de consumo para o inquilino no mês ${month}.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await addConsumptionMutation.mutateAsync({
+        tenant_id: selectedTenant,
+        consumption: parseFloat(consumption),
+        month,
+      });
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  if (isLoading) {
+    return <div>Carregando inquilinos...</div>;
+  }
 
   return (
     <Card className="max-w-2xl mx-auto p-6">
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-semibold">Envio Manual de Cobrança</h3>
-          <p className="text-warm-gray">Preencha os dados para gerar uma nova cobrança</p>
+          <h3 className="text-lg font-semibold">Registro Manual de Consumo</h3>
+          <p className="text-muted-foreground">Preencha os dados para registrar o consumo de um inquilino</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="tenant">Inquilino</Label>
-            <Select>
+            <Select value={selectedTenant} onValueChange={setSelectedTenant}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um inquilino" />
               </SelectTrigger>
               <SelectContent>
-                {mockTenants.map((tenant) => (
-                  <SelectItem key={tenant.id} value={tenant.id.toString()}>
+                {tenants?.map((tenant) => (
+                  <SelectItem key={tenant.id} value={tenant.id}>
                     {tenant.name} - {tenant.unit}
                   </SelectItem>
                 ))}
@@ -56,23 +149,35 @@ const ManualBilling = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Valor</Label>
-            <Input id="amount" placeholder="R$ 0,00" type="number" step="0.01" />
+            <Label htmlFor="consumption">Consumo (kWh)</Label>
+            <Input 
+              id="consumption" 
+              type="number" 
+              step="0.01"
+              min="0"
+              value={consumption}
+              onChange={(e) => setConsumption(e.target.value)}
+              placeholder="0.00"
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dueDate">Data de Vencimento</Label>
-            <Input id="dueDate" type="date" />
+            <Label htmlFor="month">Mês de Referência</Label>
+            <Input 
+              id="month" 
+              type="month" 
+              value={month}
+              onChange={(e) => setMonth(e.target.value)}
+            />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Observações</Label>
-            <Input id="notes" placeholder="Observações adicionais" />
-          </div>
-
-          <Button type="submit" className="w-full bg-eco-green hover:bg-leaf-dark">
+          <Button 
+            type="submit" 
+            className="w-full bg-eco-green hover:bg-leaf-dark"
+            disabled={addConsumptionMutation.isPending}
+          >
             <Send className="w-4 h-4 mr-2" />
-            Enviar Cobrança
+            {addConsumptionMutation.isPending ? 'Salvando...' : 'Registrar Consumo'}
           </Button>
         </form>
       </div>
