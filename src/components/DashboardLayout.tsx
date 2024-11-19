@@ -21,29 +21,47 @@ const DashboardLayout = () => {
         </header>
 
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
-          <div className="overflow-x-auto pb-2">
-            <TabsList className="bg-white shadow-sm border w-full sm:w-auto inline-flex">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center">
+          <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+            <TabsList className="bg-white shadow-sm border w-max min-w-full sm:w-auto sm:min-w-0 flex">
+              <TabsTrigger 
+                value="overview" 
+                className="flex-shrink-0 data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center"
+              >
                 <File className="w-4 h-4 mr-2" />
                 <span>Visão Geral</span>
               </TabsTrigger>
-              <TabsTrigger value="history" className="data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center">
+              <TabsTrigger 
+                value="history" 
+                className="flex-shrink-0 data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center"
+              >
                 <Calendar className="w-4 h-4 mr-2" />
                 <span>Histórico</span>
               </TabsTrigger>
-              <TabsTrigger value="consumption" className="data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center">
+              <TabsTrigger 
+                value="consumption" 
+                className="flex-shrink-0 data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center"
+              >
                 <History className="w-4 h-4 mr-2" />
                 <span>Consumo</span>
               </TabsTrigger>
-              <TabsTrigger value="manual" className="data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center">
+              <TabsTrigger 
+                value="manual" 
+                className="flex-shrink-0 data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center"
+              >
                 <PlusCircle className="w-4 h-4 mr-2" />
                 <span>Manual</span>
               </TabsTrigger>
-              <TabsTrigger value="bulk" className="data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center">
+              <TabsTrigger 
+                value="bulk" 
+                className="flex-shrink-0 data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center"
+              >
                 <ListPlus className="w-4 h-4 mr-2" />
                 <span>Massa</span>
               </TabsTrigger>
-              <TabsTrigger value="tenants" className="data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center">
+              <TabsTrigger 
+                value="tenants" 
+                className="flex-shrink-0 data-[state=active]:bg-eco-green/10 data-[state=active]:text-eco-green whitespace-nowrap inline-flex items-center"
+              >
                 <Users className="w-4 h-4 mr-2" />
                 <span>Inquilinos</span>
               </TabsTrigger>
