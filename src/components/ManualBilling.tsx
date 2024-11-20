@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { sendBilling } from '@/integrations/evolution/client';
 
 const ManualBilling = () => {
   const { toast } = useToast();
@@ -22,7 +21,6 @@ const ManualBilling = () => {
   const [selectedTenant, setSelectedTenant] = useState('');
   const [consumption, setConsumption] = useState('');
   const [month, setMonth] = useState('');
-  const [amount, setAmount] = useState('');
 
   // Fetch tenants
   const { data: tenants, isLoading } = useQuery({
@@ -51,55 +49,35 @@ const ManualBilling = () => {
     return data && data.length > 0;
   };
 
-  // Mutation for adding consumption and sending billing
+  // Mutation for adding consumption
   const addConsumptionMutation = useMutation({
-    mutationFn: async (consumptionData: { 
-      tenant_id: string; 
-      consumption: number; 
-      month: string;
-      amount: number;
-    }) => {
+    mutationFn: async (consumptionData: { tenant_id: string; consumption: number; month: string }) => {
       const formattedMonth = `${consumptionData.month}-01`;
       
-      // First save consumption to Supabase
-      const { data: consumptionRecord, error } = await supabase
+      const { data, error } = await supabase
         .from('consumption')
-        .insert([{ 
-          tenant_id: consumptionData.tenant_id, 
-          consumption: consumptionData.consumption,
-          month: formattedMonth 
-        }])
+        .insert([{ ...consumptionData, month: formattedMonth }])
         .select()
         .single();
 
       if (error) throw error;
-
-      // Then send billing through Evolution API
-      await sendBilling({
-        tenant_id: consumptionData.tenant_id,
-        consumption: consumptionData.consumption,
-        month: formattedMonth,
-        amount: consumptionData.amount,
-      });
-
-      return consumptionRecord;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['consumption'] });
       toast({
-        title: "Consumo registrado e cobrança enviada!",
-        description: "Os dados foram salvos e a cobrança foi enviada com sucesso.",
+        title: "Consumo registrado com sucesso!",
+        description: "Os dados de consumo foram salvos.",
       });
       // Reset form
       setSelectedTenant('');
       setConsumption('');
       setMonth('');
-      setAmount('');
     },
     onError: (error) => {
       toast({
-        title: "Erro ao processar",
-        description: "Ocorreu um erro ao salvar os dados ou enviar a cobrança.",
+        title: "Erro ao registrar consumo",
+        description: "Ocorreu um erro ao salvar os dados de consumo.",
         variant: "destructive",
       });
       console.error('Error:', error);
@@ -109,7 +87,7 @@ const ManualBilling = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedTenant || !consumption || !month || !amount) {
+    if (!selectedTenant || !consumption || !month) {
       toast({
         title: "Erro de validação",
         description: "Por favor, preencha todos os campos.",
@@ -135,7 +113,6 @@ const ManualBilling = () => {
         tenant_id: selectedTenant,
         consumption: parseFloat(consumption),
         month,
-        amount: parseFloat(amount),
       });
     } catch (error) {
       console.error('Error:', error);
@@ -150,8 +127,8 @@ const ManualBilling = () => {
     <Card className="max-w-2xl mx-auto p-6">
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-semibold">Registro Manual de Consumo e Cobrança</h3>
-          <p className="text-muted-foreground">Preencha os dados para registrar o consumo e enviar a cobrança</p>
+          <h3 className="text-lg font-semibold">Registro Manual de Consumo</h3>
+          <p className="text-muted-foreground">Preencha os dados para registrar o consumo de um inquilino</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -185,19 +162,6 @@ const ManualBilling = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Valor (R$)</Label>
-            <Input 
-              id="amount" 
-              type="number" 
-              step="0.01"
-              min="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="month">Mês de Referência</Label>
             <Input 
               id="month" 
@@ -213,7 +177,7 @@ const ManualBilling = () => {
             disabled={addConsumptionMutation.isPending}
           >
             <Send className="w-4 h-4 mr-2" />
-            {addConsumptionMutation.isPending ? 'Processando...' : 'Registrar e Enviar Cobrança'}
+            {addConsumptionMutation.isPending ? 'Salvando...' : 'Registrar Consumo'}
           </Button>
         </form>
       </div>
