@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const sendWhatsAppMessage = async (phone: string, name: string, amount: string) => {
-  const url = 'http://evolution.carlosgorges.cloud/message/sendText/typebot';
+  const url = 'https://evolution.carlosgorges.cloud/message/sendText/typebot';
   const headers = {
     'apikey': 'ae612cce-61fa-461d-9065-9bfd03faaf1f',
     'Content-Type': 'application/json',
