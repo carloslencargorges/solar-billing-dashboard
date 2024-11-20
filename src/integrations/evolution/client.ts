@@ -7,7 +7,7 @@ export const sendBilling = async (data: {
   month: string;
   amount: number;
 }) => {
-  const response = await fetch(`${EVOLUTION_API_URL}/api/v1/billings`, {
+  const response = await fetch(`${EVOLUTION_API_URL}/api/v1/billings/send`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -22,7 +22,8 @@ export const sendBilling = async (data: {
   });
 
   if (!response.ok) {
-    throw new Error('Falha ao enviar cobrança');
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Falha ao enviar cobrança');
   }
 
   return response.json();
