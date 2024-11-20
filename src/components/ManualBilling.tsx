@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { sendWhatsAppMessage } from '@/utils/whatsappMessage';
 
 const ManualBilling = () => {
   const { toast } = useToast();
@@ -54,6 +55,7 @@ const ManualBilling = () => {
     mutationFn: async (consumptionData: { tenant_id: string; consumption: number; month: string }) => {
       const formattedMonth = `${consumptionData.month}-01`;
       
+      // First, save consumption data
       const { data, error } = await supabase
         .from('consumption')
         .insert([{ ...consumptionData, month: formattedMonth }])
@@ -61,13 +63,45 @@ const ManualBilling = () => {
         .single();
 
       if (error) throw error;
+
+      // Calculate billing amount (example calculation - adjust as needed)
+      const amount = (consumptionData.consumption * 0.92).toFixed(2); // R$ 0,92 per kWh
+
+      // Get tenant details for WhatsApp message
+      const { data: tenantData, error: tenantError } = await supabase
+        .from('tenants')
+        .select('name, phone')
+        .eq('id', consumptionData.tenant_id)
+        .single();
+
+      if (tenantError) throw tenantError;
+
+      // Send WhatsApp message
+      await sendWhatsAppMessage(
+        tenantData.phone,
+        tenantData.name,
+        amount
+      );
+
+      // Create billing record
+      const { error: billingError } = await supabase
+        .from('billings')
+        .insert([{
+          tenant_id: consumptionData.tenant_id,
+          amount: parseFloat(amount),
+          status: 'pending',
+          due_date: new Date(new Date().setDate(new Date().getDate() + 15)).toISOString().split('T')[0], // Due in 15 days
+        }]);
+
+      if (billingError) throw billingError;
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['consumption'] });
       toast({
         title: "Consumo registrado com sucesso!",
-        description: "Os dados de consumo foram salvos.",
+        description: "Os dados de consumo foram salvos e a mensagem foi enviada.",
       });
       // Reset form
       setSelectedTenant('');
@@ -77,7 +111,7 @@ const ManualBilling = () => {
     onError: (error) => {
       toast({
         title: "Erro ao registrar consumo",
-        description: "Ocorreu um erro ao salvar os dados de consumo.",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao salvar os dados de consumo.",
         variant: "destructive",
       });
       console.error('Error:', error);
