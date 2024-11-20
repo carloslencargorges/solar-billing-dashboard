@@ -1,23 +1,29 @@
 export interface Tenant {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  unit: string;
   phone: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  postal_code: string;
   created_at: string;
 }
 
 export interface Consumption {
-  id: number;
-  tenant_id: number;
+  id: string;
+  tenant_id: string;
   consumption: number;
   month: string;
   created_at: string;
 }
 
 export interface Billing {
-  id: number;
-  tenant_id: number;
+  id: string;
+  tenant_id: string;
   amount: number;
   status: 'pending' | 'paid';
   due_date: string;

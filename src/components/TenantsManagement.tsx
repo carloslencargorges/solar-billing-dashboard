@@ -1,8 +1,6 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PlusCircle, Pencil, Trash2 } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
@@ -13,14 +11,9 @@ import {
 } from "@/components/ui/dialog";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-
-interface Tenant {
-  id: string;
-  name: string;
-  email: string;
-  unit: string;
-  phone: string;
-}
+import TenantForm from './tenants/TenantForm';
+import TenantsTable from './tenants/TenantsTable';
+import { Tenant } from '@/types/database.types';
 
 const TenantsManagement = () => {
   const { toast } = useToast();
@@ -45,7 +38,7 @@ const TenantsManagement = () => {
 
   // Add tenant mutation
   const addTenantMutation = useMutation({
-    mutationFn: async (newTenant: Omit<Tenant, 'id'>) => {
+    mutationFn: async (newTenant: Omit<Tenant, 'id' | 'created_at'>) => {
       const { data, error } = await supabase
         .from('tenants')
         .insert(newTenant)
@@ -81,7 +74,13 @@ const TenantsManagement = () => {
           name: tenant.name,
           email: tenant.email,
           phone: tenant.phone,
-          unit: tenant.unit,
+          street: tenant.street,
+          number: tenant.number,
+          complement: tenant.complement,
+          neighborhood: tenant.neighborhood,
+          city: tenant.city,
+          state: tenant.state,
+          postal_code: tenant.postal_code,
         })
         .eq('id', tenant.id)
         .select()
@@ -140,15 +139,25 @@ const TenantsManagement = () => {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
       phone: formData.get('phone') as string,
-      unit: formData.get('unit') as string,
+      street: formData.get('street') as string,
+      number: formData.get('number') as string,
+      complement: formData.get('complement') as string,
+      neighborhood: formData.get('neighborhood') as string,
+      city: formData.get('city') as string,
+      state: formData.get('state') as string,
+      postal_code: formData.get('postal_code') as string,
     };
 
     if (isEditing && currentTenant) {
-      updateTenantMutation.mutate({ ...tenantData, id: currentTenant.id });
+      updateTenantMutation.mutate({ ...tenantData, id: currentTenant.id, created_at: currentTenant.created_at });
     } else {
       addTenantMutation.mutate(tenantData);
     }
   };
+
+  if (isLoading) {
+    return <div>Carregando inquilinos...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -171,113 +180,25 @@ const TenantsManagement = () => {
             <DialogHeader>
               <DialogTitle>{isEditing ? "Editar Inquilino" : "Novo Inquilino"}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nome</label>
-                <Input 
-                  name="name"
-                  required 
-                  placeholder="Nome completo"
-                  defaultValue={currentTenant?.name}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
-                <Input 
-                  name="email"
-                  required 
-                  type="email" 
-                  placeholder="email@exemplo.com"
-                  defaultValue={currentTenant?.email}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Telefone</label>
-                <Input 
-                  name="phone"
-                  required 
-                  placeholder="(00) 00000-0000"
-                  defaultValue={currentTenant?.phone}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Unidade</label>
-                <Input 
-                  name="unit"
-                  required 
-                  placeholder="Ex: Apt 101"
-                  defaultValue={currentTenant?.unit}
-                />
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full bg-eco-green hover:bg-leaf-dark"
-                disabled={addTenantMutation.isPending || updateTenantMutation.isPending}
-              >
-                {isEditing ? "Salvar Alterações" : "Cadastrar Inquilino"}
-              </Button>
-            </form>
+            <TenantForm 
+              currentTenant={currentTenant}
+              onSubmit={handleSubmit}
+              isLoading={addTenantMutation.isPending || updateTenantMutation.isPending}
+            />
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Telefone</TableHead>
-              <TableHead>Unidade</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">Carregando...</TableCell>
-              </TableRow>
-            ) : tenants?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">Nenhum inquilino cadastrado</TableCell>
-              </TableRow>
-            ) : (
-              tenants?.map((tenant) => (
-                <TableRow key={tenant.id}>
-                  <TableCell className="font-medium">{tenant.name}</TableCell>
-                  <TableCell>{tenant.email}</TableCell>
-                  <TableCell>{tenant.phone}</TableCell>
-                  <TableCell>{tenant.unit}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => {
-                          setIsEditing(true);
-                          setCurrentTenant(tenant);
-                          setIsDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="text-red-500 hover:text-red-600"
-                        onClick={() => deleteTenantMutation.mutate(tenant.id)}
-                        disabled={deleteTenantMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <TenantsTable 
+        tenants={tenants || []}
+        onEdit={(tenant) => {
+          setIsEditing(true);
+          setCurrentTenant(tenant);
+          setIsDialogOpen(true);
+        }}
+        onDelete={(id) => deleteTenantMutation.mutate(id)}
+        isDeleting={deleteTenantMutation.isPending}
+      />
     </div>
   );
 };
