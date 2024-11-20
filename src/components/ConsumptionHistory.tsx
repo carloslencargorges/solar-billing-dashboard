@@ -1,20 +1,20 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 
 const ConsumptionHistory = () => {
-  const { data: consumptions, isLoading } = useQuery({
-    queryKey: ['consumption'],
+  const { data: consumptionHistory, isLoading } = useQuery({
+    queryKey: ['consumption-history'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('consumption')
         .select(`
           *,
-          tenants (
+          tenant:tenants (
             name,
-            unit
+            street,
+            number
           )
         `)
         .order('month', { ascending: false });
@@ -29,41 +29,24 @@ const ConsumptionHistory = () => {
   }
 
   return (
-    <Card className="p-4 sm:p-6">
-      <div className="flex justify-between items-center mb-4 sm:mb-6">
-        <h3 className="text-base sm:text-lg font-semibold">Histórico de Consumo</h3>
-      </div>
-
-      <div className="overflow-x-auto -mx-4 sm:mx-0">
-        <div className="inline-block min-w-full align-middle">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="whitespace-nowrap">Inquilino</TableHead>
-                <TableHead className="whitespace-nowrap">Unidade</TableHead>
-                <TableHead className="whitespace-nowrap">Consumo (kWh)</TableHead>
-                <TableHead className="whitespace-nowrap">Mês de Referência</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {consumptions?.map((consumption) => (
-                <TableRow key={consumption.id}>
-                  <TableCell className="whitespace-nowrap">{consumption.tenants?.name}</TableCell>
-                  <TableCell className="whitespace-nowrap">{consumption.tenants?.unit}</TableCell>
-                  <TableCell className="whitespace-nowrap">{consumption.consumption}</TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {new Date(consumption.month).toLocaleDateString('pt-BR', { 
-                      month: 'long', 
-                      year: 'numeric' 
-                    })}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    </Card>
+    <div className="space-y-4">
+      {consumptionHistory?.map((record) => (
+        <Card key={record.id} className="p-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="font-semibold">{record.tenant?.name}</h3>
+              <p className="text-sm text-muted-foreground">{record.tenant?.street}, {record.tenant?.number}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-medium">{record.consumption} kWh</p>
+              <p className="text-sm text-muted-foreground">
+                {new Date(record.month).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+              </p>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
   );
 };
 

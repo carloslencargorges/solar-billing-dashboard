@@ -175,7 +175,7 @@ const ManualBilling = () => {
               <SelectContent>
                 {tenants?.map((tenant) => (
                   <SelectItem key={tenant.id} value={tenant.id}>
-                    {tenant.name} - {tenant.unit}
+                    {tenant.name} - {tenant.street}, {tenant.number}
                   </SelectItem>
                 ))}
               </SelectContent>
