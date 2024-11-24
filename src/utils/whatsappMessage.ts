@@ -1,63 +1,13 @@
 import axios from 'axios';
-import { formatBillingMessage } from './formatBillingMessage';
 
-interface WhatsAppMessageData {
-  tenant: {
-    name: string;
-    street: string;
-    number: string;
-    complement?: string;
-    neighborhood: string;
-    city: string;
-    state: string;
-    postal_code: string;
-    phone: string;
-  };
-  billing: {
-    id: string;
-    amount: number;
-    dueDate: string;
-  };
-  consumption: {
-    current: number;
-    previous: number;
-    total: number;
-  };
-  kwhPrice: number;
-}
-
-export const sendWhatsAppMessage = async (data: WhatsAppMessageData) => {
+export const sendWhatsAppMessage = async (phone: string, name: string, amount: string) => {
   const url = 'https://evolution.carlosgorges.cloud/message/sendText/typebot';
   const headers = {
     'apikey': 'ae612cce-61fa-461d-9065-9bfd03faaf1f',
     'Content-Type': 'application/json',
   };
 
-  const formattedPhone = data.tenant.phone.replace(/\D/g, '');
-  const messageText = formatBillingMessage({
-    id: data.billing.id,
-    tenant: {
-      name: data.tenant.name,
-      street: data.tenant.street,
-      number: data.tenant.number,
-      complement: data.tenant.complement,
-      neighborhood: data.tenant.neighborhood,
-      city: data.tenant.city,
-      state: data.tenant.state,
-      postal_code: data.tenant.postal_code,
-    },
-    consumption: {
-      current: data.consumption.current,
-      previous: data.consumption.previous,
-      total: data.consumption.total,
-    },
-    billing: {
-      amount: data.billing.amount,
-      dueDate: data.billing.dueDate,
-      kwhPrice: data.kwhPrice,
-    },
-  });
-
+  const formattedPhone = phone.replace(/\D/g, '');
   const body = {
     number: '55' + formattedPhone,
     options: {
@@ -66,7 +16,7 @@ export const sendWhatsAppMessage = async (data: WhatsAppMessageData) => {
       linkPreview: false,
     },
     textMessage: {
-      text: messageText,
+      text: `Olá ${name}, sua cobrança é de R$ ${amount}`,
     },
   };
 
